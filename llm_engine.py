@@ -1,4 +1,3 @@
-# === Updated llm_engine.py with retry ===
 import os, json, logging, textwrap, time, re
 from groq import Groq
 from utils.file_extractors import extract_text_from_file
@@ -27,8 +26,10 @@ def analyze_document(file_name, file_bytes):
                     model="llama-3.3-70b-versatile"
                 )
                 content = response.choices[0].message.content
-                print (content)
-                findings = json.loads(content)
+                if not content.strip():
+                    raise ValueError("Empty response content from LLM.")
+                json_str = extract_json_from_response(content)
+                findings = json.loads(json_str)
                 all_findings.extend(findings)
                 break  # exit retry loop on success
             except Exception as e:
@@ -64,6 +65,20 @@ def construct_prompt(file_number, text):
         - suggestion
     """)
     return instructions + "\n\nDocument Content:\n" + text
+
+def extract_json_from_response(content):
+    try:
+        # Extract JSON from ```json ... ``` block
+        match = re.search(r"```json\s*(\[.*?\])\s*```", content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        # Fallback to detecting a JSON array without markdown
+        match = re.search(r"(\[.*\])", content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+    except Exception as e:
+        logger.error(f"Failed to extract JSON from LLM response: {e}")
+    raise ValueError("No valid JSON array found in LLM response.")
 
 def run_fallback_detectors(file_number, text):
     findings = []
