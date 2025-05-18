@@ -14,11 +14,11 @@ def check_typos_in_chunks(text, tool, chunk_size=5000, max_retries=3):
         while retries < max_retries:
             try:
                 matches.extend(tool.check(chunk))
-                break  # Exit retry loop on success
+                break  
             except RateLimitError:
                 retries += 1
                 if retries < max_retries:
-                    delay = 2 ** retries  # Exponential backoff
+                    delay = 2 ** retries  
                     time.sleep(delay)
                 else:
                     raise RateLimitError("Max retries exceeded for LanguageTool API.")

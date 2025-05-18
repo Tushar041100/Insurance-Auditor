@@ -31,7 +31,7 @@ def analyze_document(file_name, file_bytes):
                 json_str = extract_json_from_response(content)
                 findings = json.loads(json_str)
                 all_findings.extend(findings)
-                break  # exit retry loop on success
+                break  
             except Exception as e:
                 error_str = str(e)
                 logger.error(f"LLM analysis failed for chunk {idx + 1} of {file_number}: {error_str}")
@@ -68,11 +68,9 @@ def construct_prompt(file_number, text):
 
 def extract_json_from_response(content):
     try:
-        # Extract JSON from ```json ... ``` block
         match = re.search(r"```json\s*(\[.*?\])\s*```", content, re.DOTALL)
         if match:
             return match.group(1).strip()
-        # Fallback to detecting a JSON array without markdown
         match = re.search(r"(\[.*\])", content, re.DOTALL)
         if match:
             return match.group(1).strip()
@@ -97,7 +95,7 @@ def split_text_into_chunks(text, max_chars=4000, overlap=200):
     for word in words:
         if total_chars + len(word) + 1 > max_chars:
             chunks.append(" ".join(current))
-            current = current[-(overlap // 5):]  # retain overlap
+            current = current[-(overlap // 5):]  
             total_chars = sum(len(w) for w in current)
         current.append(word)
         total_chars += len(word) + 1
