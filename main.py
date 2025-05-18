@@ -25,9 +25,12 @@ def main():
             except Exception as e:
                 st.error(f"Failed to analyze {file_name}: {e}")
         if all_findings:
-            report_path = os.path.join(os.getcwd(), "analysis_ALTA_Report.xlsx")
+            report_path = os.path.join(os.getcwd(), "error_report.xlsx")
             ReportWriter.write_report(all_findings, report_path)
-            st.success(f"Analysis report saved: {report_path}")
+            st.success(f"Analysis report saved: {report_path} and you can download the report:")
+        
+        with open(report_path, "rb") as f:
+            st.download_button("Download Excel Report", data=f, file_name="error_report.xlsx")
 
 if __name__ == "__main__":
     main()
